@@ -1,4 +1,10 @@
-
+<!-- 
+======================================================================
+✂️ 1. [index.html] 파일 영역 시작
+======================================================================
+(아래 <!DOCTYPE html> 부터 </html> 까지 복사하여 index.html로 저장하세요) 
+-->
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -11,31 +17,24 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="라온 프라이빗">
     <meta name="theme-color" content="#0d1b3e">
-    <link rel="preload" as="image" href="/images/sam.jpg">
     
     <!-- 외부 라이브러리 (Tailwind CSS, Font Awesome) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ========================================================================= -->
-    <!-- 📂 외부 CSS 및 JS 연결 영역 (이미지 폴더 구조 반영) -->
-    <!-- ========================================================================= -->
-     
     <link rel="stylesheet" href="css/desktop.css">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="css/desktop.css">
     <script src="script.js" defer></script>
 </head>
-<!-- ========================================================================= -->
-<!-- [2. HTML STRUCTURE SECTION] (기본 화면 구조) -->
-<!-- ========================================================================= -->
+
 <body class="bg-gray-100 text-gray-800 h-screen w-screen overflow-hidden flex select-none">
 
     <!-- 1차 메인 사이드바 (좌측 최외곽 / 네이비 배경) -->
     <aside class="w-48 raon-main text-white flex flex-col justify-between items-center py-5 px-3 flex-shrink-0 z-20 shadow-xl h-full">
         <div class="w-full flex flex-col items-center flex-1 min-h-0">
             
-            <!-- 브랜드 로고 영역 (images/logo.png 하나로 관리) -->
+            <!-- 브랜드 로고 영역 -->
             <div class="mb-5 text-center px-1 flex-shrink-0">
                 <img src="images/rogo.png" 
                      alt="라온프라이빗 로고" 
@@ -43,7 +42,7 @@
                      class="max-h-14 w-auto mx-auto mb-1.5 object-contain">
             </div>
 
-            <!-- 1차 목차 동적 생성 영역 (수량이 많아지면 아래로 자동 스크롤) -->
+            <!-- 1차 목차 동적 생성 영역 -->
             <nav class="w-full flex flex-col gap-2.5 overflow-y-auto flex-1 pr-1" id="primaryNav">
                 <!-- JS로 자동 나열됩니다 -->
             </nav>
@@ -132,5 +131,7 @@
             </button>
         </div>
     </div>
+<!-- ✂️ 3. [script.js] 파일 영역 끝 ✂️ -->
 </body>
 </html>
+<!-- ✂️ 1. [index.html] 파일 영역 끝 ✂️ -->
