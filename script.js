@@ -1,3 +1,7 @@
+// =========================================================================
+// 📂 [목차 데이터 편집 섹션] 
+// 현장이 바뀔 때 아래 siteData의 이름과 이미지 경로만 적어주시면 위에서 아래로 자동 나열됩니다.
+// =========================================================================
 const siteData = {
     /* > 1. 사업개요 */
     summary: {
@@ -216,20 +220,40 @@ function toggleFullScreen() {
     }
 }
 
-// =========================================================================
-// ✨ PWA 정식 제어 로직 (수정 완료)
-// =========================================================================
+// PWA 자동 제어 로직
 let deferredPrompt = null;
 
 function initPWA() {
-    // 1. 서비스 워커 물리 파일(sw.js) 등록 실행
+    const manifestData = {
+        name: "숭의역 라온프라이빗 스카이브 브리핑북",
+        short_name: "라온스카이브",
+        start_url: "./",
+        display: "standalone",
+        orientation: "landscape",
+        background_color: "#0d1b3e",
+        theme_color: "#0d1b3e",
+        icons: [
+            { src: "https://placehold.co/192x192/0d1b3e/ffffff?text=RAON+APP", sizes: "192x192", type: "image/png" },
+            { src: "https://placehold.co/512x512/0d1b3e/ffffff?text=RAON+APP", sizes: "512x512", type: "image/png" }
+        ]
+    };
+    const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
+    const manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = URL.createObjectURL(manifestBlob);
+    document.head.appendChild(manifestLink);
+
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('서비스 워커 등록 성공!'))
-            .catch(err => console.log('서비스 워커 등록 실패:', err));
+        const swCode = `
+            self.addEventListener('install', (e) => self.skipWaiting());
+            self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+            self.addEventListener('fetch', (e) => {});
+        `;
+        const swBlob = new Blob([swCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(swBlob))
+            .catch(err => console.log('SW error:', err));
     }
 
-    // 2. 이미 앱으로 설치되어 단독 모드(Standalone)로 구동 중인지 체크
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     if (isStandalone) {
         const installBtn = document.getElementById('pwaInstallBtn');
@@ -238,21 +262,18 @@ function initPWA() {
             installBtn.classList.remove('animate-bounce');
             installBtn.className = "bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-slate-300";
             installBtn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i><span>전용 앱 모드</span>`;
-            installBtn.onclick = null; // 클릭 비활성화
+            installBtn.onclick = null;
         }
         return;
     }
 
-    // 3. 브라우저 점 3개 메뉴에 설치 권한이 충족되었을 때 발생하는 이벤트
     window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault(); // 기본 팝업 방지 (우리가 제어하기 위함)
+        e.preventDefault();
         deferredPrompt = e;
-        // 설치 가능한 상태가 되면 화면 내 수동 다운로드 버튼도 보이게 함
         const installBtn = document.getElementById('pwaInstallBtn');
         if (installBtn) installBtn.classList.remove('hidden');
     });
 
-    // 4. 아이폰(Safari) 등 자동 설치 팝업을 지원하지 않는 기기 대응 (모달 띄우기용 버튼 활성화)
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (isMobile) {
         const installBtn = document.getElementById('pwaInstallBtn');
@@ -260,14 +281,11 @@ function initPWA() {
     }
 }
 
-// 앱 다운로드 버튼 클릭 시 동작
 function installPWAApp() {
     if (deferredPrompt) {
-        // 안드로이드 등 네이티브 프롬프트가 지원되는 기기
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
     } else {
-        // 아이폰 또는 윈도우 데스크탑 등 프롬프트 미지원 기기는 안내 모달창 표시
         const modal = document.getElementById('pwaInstallModal');
         if (modal) modal.classList.remove('hidden');
     }
