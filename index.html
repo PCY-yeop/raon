@@ -2,13 +2,11 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>숭의역 라온프라이빗 스카이브 - 프라이빗 브리핑북</title>
     
-    <!-- PWA 매니페스트 연결 (오프라인 표시 방지) -->
+    <!-- PWA 매니페스트 및 모바일 가상 앱 설정 -->
     <link rel="manifest" href="manifest.json">
-
-    <!-- PWA 모바일 앱 설정 메타 태그 -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,34 +17,65 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link rel="preload" as="image" href="images/sam.jpg">
-    
-    <!-- 📂 외부 CSS 및 JS 연결 영역 -->
-    <link rel="stylesheet" href="css/desktop.css?v=1.2">
-    <script src="script.js?v=1.2" defer></script>
+    <!-- 외부 스타일시트 및 자바스크립트 연동 -->
+    <link rel="stylesheet" href="css/desktop.css">
+    <script src="script.js" defer></script>
 </head>
 
-<body class="bg-gray-100 text-gray-800 h-screen w-screen overflow-hidden flex">
+<body class="bg-slate-100 text-gray-800 h-screen w-screen overflow-hidden flex flex-col md:flex-row">
 
-    <!-- 1차 메인 사이드바 (좌측 최외곽 / 네이비 배경) -->
-    <aside class="w-48 raon-main text-white flex flex-col justify-between items-center py-5 px-3 flex-shrink-0 z-20 shadow-xl h-full">
+    <!-- [1] 모바일 전용 상단 레이아웃 (768px 미만 / md:hidden) -->
+    <div class="flex flex-col md:hidden flex-shrink-0 z-30 raon-main text-white shadow-md">
+        <!-- 모바일 상단 브랜드 헤더 -->
+        <div class="h-12 px-4 flex items-center justify-between border-b border-white/10">
+            <div class="flex items-center gap-2">
+                <img src="images/rogo.png" alt="로고" onerror="this.onerror=null; this.src='https://placehold.co/120x40/0d1b3e/ffffff?text=LOGO';" class="h-7 w-auto object-contain">
+                <span class="text-xs font-bold text-slate-300">VIP 브리핑북</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="pwaInstallBtnMobile" onclick="installPWAApp()" class="hidden bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1">
+                    <i class="fa-solid fa-download"></i>
+                    <span>앱 설치</span>
+                </button>
+                <button onclick="toggleFullScreen()" class="text-slate-300 p-1.5 text-xs">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 1차 메인목차 (모바일 가로 스크롤) -->
+        <nav class="flex overflow-x-auto gap-1.5 p-2 no-scrollbar bg-slate-900/50 border-b border-white/5" id="primaryNavMobile">
+            <!-- JS 동적 생성 -->
+        </nav>
+
+        <!-- 2차 세부목차 & 확대 버튼 (모바일 가로 스크롤) -->
+        <div class="flex items-center justify-between gap-2 px-2 py-1.5 bg-slate-800/90 overflow-x-auto no-scrollbar">
+            <div class="flex gap-1.5 overflow-x-auto no-scrollbar flex-1" id="secondaryNavMobile">
+                <!-- JS 동적 생성 -->
+            </div>
+            <!-- 모바일용 이미지 크게보기 버튼 -->
+            <button onclick="openZoomModal()" type="button" class="flex-shrink-0 py-1 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 shadow">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+                <span>크게보기</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- [2] 태블릿/PC 전용 좌측 사이드바 (768px 이상 / md:flex) -->
+    <!-- 1차 메인 사이드바 -->
+    <aside class="hidden md:flex w-48 raon-main text-white flex-col justify-between items-center py-5 px-3 flex-shrink-0 z-20 shadow-xl h-full">
         <div class="w-full flex flex-col items-center flex-1 min-h-0">
-            
-            <!-- 브랜드 로고 영역 -->
+            <!-- 로고 -->
             <div class="mb-5 text-center px-1 flex-shrink-0">
-                <img src="images/rogo.png" 
-                     alt="라온프라이빗 로고" 
-                     onerror="this.onerror=null; this.src='https://placehold.co/160x60/0d1b3e/ffffff?text=logo.png';" 
-                     class="max-h-14 w-auto mx-auto mb-1.5 object-contain">
+                <img src="images/rogo.png" alt="라온프라이빗 로고" onerror="this.onerror=null; this.src='https://placehold.co/160x60/0d1b3e/ffffff?text=logo.png';" class="max-h-14 w-auto mx-auto mb-1.5 object-contain">
             </div>
 
-            <!-- 1차 목차 동적 생성 영역 -->
-            <nav class="w-full flex flex-col gap-2.5 overflow-y-auto flex-1 pr-1" id="primaryNav">
-                <!-- JS로 자동 나열됩니다 -->
+            <!-- 1차 목차 (데스크톱/태블릿) -->
+            <nav class="w-full flex flex-col gap-2.5 overflow-y-auto flex-1 pr-1" id="primaryNavDesktop">
+                <!-- JS 동적 생성 -->
             </nav>
         </div>
 
-        <!-- 하단 고정 브랜드 라벨 -->
         <div class="w-full flex-shrink-0 pt-2 mt-2 flex flex-col gap-2.5 items-center">
             <div class="text-[10px] text-gray-400 text-center tracking-tighter border-t border-white/10 pt-2.5 w-full">
                 VIP BRIEFING BOOK
@@ -54,15 +83,15 @@
         </div>
     </aside>
 
-    <!-- 2차 세부 서브메뉴 (중단 / 연한 회색 배경) -->
-    <aside class="w-44 bg-slate-200 border-r border-slate-300 py-6 px-3 flex flex-col justify-between flex-shrink-0 z-10 shadow-inner h-full">
+    <!-- 2차 세부 서브메뉴 사이드바 -->
+    <aside class="hidden md:flex w-44 bg-slate-200 border-r border-slate-300 py-6 px-3 flex-col justify-between flex-shrink-0 z-10 shadow-inner h-full">
         <div class="flex flex-col min-h-0 flex-1 overflow-hidden">
             <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 px-2 flex items-center justify-between flex-shrink-0">
                 <span id="subCategoryTitle">세부목록</span>
             </div>
-            <!-- 2차 세부목차 동적 생성 영역 -->
-            <div class="flex flex-col gap-2 overflow-y-auto flex-1 pr-1 mb-3" id="secondaryNav">
-                <!-- JS로 자동 나열됩니다 -->
+            <!-- 2차 세부목차 (데스크톱/태블릿) -->
+            <div class="flex flex-col gap-2 overflow-y-auto flex-1 pr-1 mb-3" id="secondaryNavDesktop">
+                <!-- JS 동적 생성 -->
             </div>
         </div>
 
@@ -75,20 +104,19 @@
         </div>
     </aside>
 
-    <!-- 우측 메인 콘텐츠 대화면 영역 -->
+    <!-- [3] 메인 콘텐츠 대화면 영역 (공통) -->
     <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50">
         
-        <!-- 상단 툴바 & 타이틀 바 -->
-        <header class="h-10 bg-white border-b border-gray-200 px-8 flex items-center justify-between shadow-sm flex-shrink-0">
+        <!-- 상단 툴바 (데스크톱/태블릿) -->
+        <header class="hidden md:flex h-10 bg-white border-b border-gray-200 px-6 items-center justify-between shadow-sm flex-shrink-0">
             <div class="flex items-center gap-3">
                 <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded-md" id="currentCategoryBadge">사업개요</span>
                 <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
-                <h2 class="text-lg font-bold text-gray-900" id="currentContentTitle">건축개요 및 사업안내</h2>
+                <h2 class="text-sm md:text-base font-bold text-gray-900" id="currentContentTitle">건축개요 및 사업안내</h2>
             </div>
 
-            <!-- 우측 편의 툴바 -->
             <div class="flex items-center gap-3">
-                <button id="pwaInstallBtn" onclick="installPWAApp()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow transition-all">
+                <button id="pwaInstallBtnDesktop" onclick="installPWAApp()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow transition-all">
                     <i class="fa-solid fa-download"></i>
                     <span>앱 다운로드</span>
                 </button>
@@ -105,29 +133,27 @@
         </header>
 
         <!-- 브리핑 뷰어 이미지 영역 -->
-        <section class="flex-1 p-4 overflow-hidden flex items-center justify-center bg-slate-900/10 relative" id="contentDisplayArea">
-            <!-- JS로 dynamic JPG 이미지 뷰어가 들어갑니다 -->
+        <section class="flex-1 p-2 md:p-4 overflow-hidden flex items-center justify-center bg-slate-900/10 relative" id="contentDisplayArea">
+            <!-- JS 이미지 뷰어가 들어갑니다 -->
         </section>
 
-        <!-- 하단 고정 법적 고지 바 -->
-        <footer class="h-4 bg-slate-800 text-slate-400 text-[9px] px-6 flex items-center justify-between flex-shrink-0 z-10">
-            <span>※ 본 자료는 이해를 돕기 위해 제작된 브리핑 자료로 실제 인허가 및 시공 과정에서 변동될 수 있습니다.</span>
+        <!-- 하단 법적 고지 바 -->
+        <footer class="h-4 bg-slate-800 text-slate-400 text-[9px] px-4 flex items-center justify-between flex-shrink-0 z-10">
+            <span>※ 본 자료는 이해를 돕기 위한 브리핑 자료로 실제 인허가 과정에서 변동될 수 있습니다.</span>
         </footer>
     </main>
 
-    <!-- 🔍 전체화면 이미지 확대 모달 -->
+    <!-- 🔍 이미지 확대 모달 -->
     <div id="imageZoomModal" class="hidden fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-2 select-none" onclick="closeZoomModal()">
-        <!-- 닫기 버튼 -->
-        <button onclick="closeZoomModal()" class="absolute top-4 right-5 text-white/80 hover:text-white bg-slate-800/80 hover:bg-slate-800 p-2.5 rounded-full z-50 transition-colors flex items-center justify-center w-10 h-10 shadow-lg">
+        <button onclick="closeZoomModal()" class="absolute top-4 right-5 text-white/80 hover:text-white bg-slate-800/80 p-2.5 rounded-full z-50 transition-colors flex items-center justify-center w-10 h-10 shadow-lg">
             <i class="fa-solid fa-xmark text-xl"></i>
         </button>
-        <!-- 확대 이미지 표시 박스 -->
         <div class="relative w-full h-full flex items-center justify-center p-2" onclick="event.stopPropagation()">
             <img id="zoomedImage" src="" alt="확대 이미지" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
         </div>
     </div>
 
-    <!-- 모바일 앱 설치 안내 모달 -->
+    <!-- PWA 안내 모달 -->
     <div id="pwaInstallModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200">
             <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">
@@ -135,19 +161,8 @@
             </div>
             <h3 class="text-lg font-bold text-slate-900 mb-2">스마트폰 앱 설치</h3>
             <p class="text-xs text-slate-600 mb-4 leading-relaxed">
-                브라우저 주소창 없이 바탕화면 앱으로 설치하여 빠르게 브리핑북을 이용하실 수 있습니다.
+                브라우저 주소창 없이 바탕화면 앱으로 설치하여 빠르게 이용하실 수 있습니다.
             </p>
-
-            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-left text-xs text-slate-700 mb-5 space-y-2.5">
-                <div class="flex items-center gap-2">
-                    <span class="w-5 h-5 bg-emerald-600 text-white rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0">1</span>
-                    <span>브라우저 메뉴에서 [홈 화면에 추가] 또는 [앱 설치] 선택</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="w-5 h-5 bg-emerald-600 text-white rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0">2</span>
-                    <span>바탕화면에 생성된 라온스카이브 앱 아이콘 실행</span>
-                </div>
-            </div>
             <button onclick="closePWAModal()" class="w-full py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-colors">
                 확인 및 닫기
             </button>

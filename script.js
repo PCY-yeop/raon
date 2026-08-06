@@ -1,9 +1,4 @@
-// =========================================================================
-// 📂 [목차 데이터 편집 섹션] 
-// 현장이 바뀔 때 아래 siteData의 이름과 이미지 경로만 적어주시면 위에서 아래로 자동 나열됩니다.
-// =========================================================================
 const siteData = {
-    /* > 1. 사업개요 */
     summary: {
         title: "사업안내",
         subItems: [
@@ -12,7 +7,6 @@ const siteData = {
             { name: "프리미엄", images: ["images/s3.jpg"] }
         ]
     },
-    /* > 2. 단지배치도 */
     layout: {
         title: "단지안내",
         subItems: [
@@ -23,7 +17,6 @@ const siteData = {
             { name: "주차 배치도", images: ["images/d5.jpg"] }
         ]
     },
-    /* > 3. 입지환경 */
     location: {
         title: "입지환경",
         subItems: [
@@ -31,7 +24,6 @@ const siteData = {
             { name: "주변 시세 비교", images: ["images/e2.jpg"] }
         ]
     },
-    /* > 4. 상품안내 */
     units: {
         title: "타입안내",
         subItems: [
@@ -41,7 +33,6 @@ const siteData = {
             { name: "44 오피스텔", images: ["images/44.jpg"] }
         ]
     },
-    /* > 5. 분양안내 */
     price: {
         title: "분양안내",
         subItems: [
@@ -50,7 +41,6 @@ const siteData = {
             { name: "특별 혜택 분석", images: ["images/b3.jpg"] }
         ]
     },
-    /* > 6. 오피스텔 */
     officetel: {
         title: "계약안내",
         subItems: [
@@ -63,20 +53,17 @@ let currentMain = Object.keys(siteData)[0] || 'summary';
 let currentSubIndex = 0;
 let currentImageIndex = 0;
 
-// 현재 표시 중인 이미지 URL 반환
 function getActiveImageUrl() {
     const currentCategory = siteData[currentMain];
     if (!currentCategory || !currentCategory.subItems || currentCategory.subItems.length === 0) return null;
     const currentSub = currentCategory.subItems[currentSubIndex] || currentCategory.subItems[0];
     const imageList = currentSub.images && currentSub.images.length > 0 ? currentSub.images : null;
-    
     if (imageList) {
         return imageList[currentImageIndex] || imageList[0];
     }
     return `https://placehold.co/1920x1080/0d1b3e/ffffff?text=${encodeURIComponent(currentSub.name)}+JPG+이미지`;
 }
 
-// 메인 콘텐츠 이미지 렌더링 (메모리 누수 방지 및 하드웨어 가속 최적화)
 function renderContent() {
     const display = document.getElementById('contentDisplayArea');
     if (!display) return;
@@ -114,7 +101,7 @@ function renderContent() {
     let paginationHtml = '';
     if (imageList.length > 1) {
         paginationHtml = `
-        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white px-4 py-1.5 rounded-full flex items-center gap-3 text-xs z-10 shadow-lg">
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white px-4 py-1.5 rounded-full flex items-center gap-3 text-xs z-10 shadow-lg select-none">
             <button onclick="changeImgPage(-1)" class="hover:text-emerald-400 p-1 ${currentImageIndex === 0 ? 'opacity-30 cursor-not-allowed' : ''}"><i class="fa-solid fa-chevron-left"></i></button>
             <span><strong>${currentImageIndex + 1}</strong> / ${imageList.length}</span>
             <button onclick="changeImgPage(1)" class="hover:text-emerald-400 p-1 ${currentImageIndex === imageList.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}"><i class="fa-solid fa-chevron-right"></i></button>
@@ -122,13 +109,15 @@ function renderContent() {
         `;
     }
 
-    // GPU 하드웨어 가속 최적화 적용 (이미지 클릭 확대 및 이미지 위 안내 오버레이 제거됨)
+    // 비동기 이미지 디코딩 및 GPU 하드웨어 가속
     display.innerHTML = `
-        <div class="relative w-full h-full flex items-center justify-center overflow-hidden rounded-2xl bg-slate-900 shadow-xl border border-slate-300 transform-gpu">
+        <div class="relative w-full h-full flex items-center justify-center overflow-hidden rounded-xl md:rounded-2xl bg-slate-900 shadow-xl border border-slate-300 transform-gpu">
             <img src="${currentImgSrc}" 
                  alt="${currentSub.name}" 
                  onerror="this.onerror=null; this.src='${fallbackSrc}';"
-                 class="max-w-full max-h-full object-contain mx-auto shadow-md transition-opacity duration-200 opacity-100"
+                 decoding="async"
+                 fetchpriority="high"
+                 class="max-w-full max-h-full object-contain mx-auto shadow-md transition-opacity duration-150 opacity-100"
                  loading="eager">
             ${paginationHtml}
         </div>
@@ -160,44 +149,57 @@ function switchSubTab(index) {
     renderSecondaryNav();
 }
 
-// 1차 목차 자동 나열
 function initNav() {
-    const primaryNav = document.getElementById('primaryNav');
-    if (!primaryNav) return;
-    primaryNav.innerHTML = '';
+    const primaryNavDesktop = document.getElementById('primaryNavDesktop');
+    const primaryNavMobile = document.getElementById('primaryNavMobile');
+    
+    if (primaryNavDesktop) primaryNavDesktop.innerHTML = '';
+    if (primaryNavMobile) primaryNavMobile.innerHTML = '';
 
     const keys = Object.keys(siteData);
     if (keys.length === 0) return;
 
-    if (!siteData[currentMain]) {
-        currentMain = keys[0];
-    }
+    if (!siteData[currentMain]) currentMain = keys[0];
 
     keys.forEach(key => {
         const item = siteData[key];
         const isActive = key === currentMain;
         
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `w-full py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-sm text-center flex-shrink-0 touch-manipulation ${
-            isActive 
-            ? 'raon-accent text-white shadow-md' 
-            : 'bg-white text-slate-800 hover:bg-slate-100 hover:text-slate-900'
-        }`;
-        btn.onclick = () => switchMainTab(key, 0);
-        btn.innerHTML = `<span>${item.title}</span>`;
-        primaryNav.appendChild(btn);
+        // 데스크톱 1차 메인목차 버튼 (활성화 시 어두운 초록색 #1b4d24 적용)
+        if (primaryNavDesktop) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `w-full py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-sm text-center flex-shrink-0 touch-manipulation ${
+                isActive ? 'bg-[#1b4d24] raon-accent text-white shadow-md' : 'bg-white text-slate-800 hover:bg-slate-100'
+            }`;
+            btn.onclick = () => switchMainTab(key, 0);
+            btn.innerHTML = `<span>${item.title}</span>`;
+            primaryNavDesktop.appendChild(btn);
+        }
+
+        // 모바일 가로 탭 버튼 (활성화 시 어두운 초록색 #1b4d24 적용)
+        if (primaryNavMobile) {
+            const btnM = document.createElement('button');
+            btnM.type = 'button';
+            btnM.className = `py-1.5 px-3 rounded-lg text-[11px] font-bold whitespace-nowrap flex-shrink-0 touch-manipulation ${
+                isActive ? 'bg-[#1b4d24] raon-accent text-white shadow' : 'bg-white/10 text-slate-200'
+            }`;
+            btnM.onclick = () => switchMainTab(key, 0);
+            btnM.innerHTML = `<span>${item.title}</span>`;
+            primaryNavMobile.appendChild(btnM);
+        }
     });
 
     renderSecondaryNav();
 }
 
-// 2차 세부목차 자동 나열
 function renderSecondaryNav() {
-    const secondaryNav = document.getElementById('secondaryNav');
+    const secondaryNavDesktop = document.getElementById('secondaryNavDesktop');
+    const secondaryNavMobile = document.getElementById('secondaryNavMobile');
     const subTitle = document.getElementById('subCategoryTitle');
-    if (!secondaryNav) return;
-    secondaryNav.innerHTML = '';
+
+    if (secondaryNavDesktop) secondaryNavDesktop.innerHTML = '';
+    if (secondaryNavMobile) secondaryNavMobile.innerHTML = '';
 
     const currentObj = siteData[currentMain];
     if (!currentObj) return;
@@ -207,23 +209,36 @@ function renderSecondaryNav() {
     if (currentObj.subItems && currentObj.subItems.length > 0) {
         currentObj.subItems.forEach((sub, index) => {
             const isActive = index === currentSubIndex;
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = `w-full py-2.5 px-3 rounded-lg text-xs font-semibold text-left transition-all cursor-pointer flex items-center justify-between flex-shrink-0 touch-manipulation ${
-                isActive 
-                ? 'raon-main text-white shadow-md font-bold' 
-                : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 border border-slate-200'
-            }`;
-            btn.onclick = () => switchSubTab(index);
-            btn.innerHTML = `<span>${sub.name}</span>`;
-            secondaryNav.appendChild(btn);
+
+            // 데스크톱 서브 버튼
+            if (secondaryNavDesktop) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `w-full py-2.5 px-3 rounded-lg text-xs font-semibold text-left transition-all cursor-pointer flex items-center justify-between flex-shrink-0 touch-manipulation ${
+                    isActive ? 'raon-main text-white shadow-md font-bold' : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
+                }`;
+                btn.onclick = () => switchSubTab(index);
+                btn.innerHTML = `<span>${sub.name}</span>`;
+                secondaryNavDesktop.appendChild(btn);
+            }
+
+            // 모바일 서브 버튼
+            if (secondaryNavMobile) {
+                const btnM = document.createElement('button');
+                btnM.type = 'button';
+                btnM.className = `py-1 px-2.5 rounded-md text-[10px] font-semibold whitespace-nowrap flex-shrink-0 touch-manipulation ${
+                    isActive ? 'bg-slate-900 text-white font-bold' : 'bg-slate-100 text-slate-700 border border-slate-300'
+                }`;
+                btnM.onclick = () => switchSubTab(index);
+                btnM.innerHTML = `<span>${sub.name}</span>`;
+                secondaryNavMobile.appendChild(btnM);
+            }
         });
     }
 
     renderContent();
 }
 
-// 🔍 이미지 확대 모달 열기 (서브목차 하단 버튼을 통해서만 호출)
 function openZoomModal() {
     const modal = document.getElementById('imageZoomModal');
     const zoomedImg = document.getElementById('zoomedImage');
@@ -231,54 +246,56 @@ function openZoomModal() {
 
     if (modal && zoomedImg && currentUrl) {
         zoomedImg.src = currentUrl;
+        zoomedImg.decoding = 'async';
         modal.classList.remove('hidden');
     }
 }
 
-// 🔍 이미지 확대 모달 닫기
 function closeZoomModal() {
     const modal = document.getElementById('imageZoomModal');
-    if (modal) {
-        modal.classList.add('hidden');
-    }
+    if (modal) modal.classList.add('hidden');
 }
 
 function toggleFullScreen() {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => {
-            console.log(`Error attempting full-screen: ${err.message}`);
+            console.log(`Fullscreen error: ${err.message}`);
         });
     } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
+        if (document.exitFullscreen) document.exitFullscreen();
     }
 }
 
-// PWA 핸들러
 let deferredPrompt = null;
 
 function initPWA() {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    const installBtn = document.getElementById('pwaInstallBtn');
+    const btnD = document.getElementById('pwaInstallBtnDesktop');
+    const btnM = document.getElementById('pwaInstallBtnMobile');
 
-    if (isStandalone && installBtn) {
-        installBtn.classList.remove('hidden');
-        installBtn.className = "bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-slate-300";
-        installBtn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i><span>전용 앱 모드</span>`;
-        installBtn.onclick = null;
+    if (isStandalone) {
+        [btnD, btnM].forEach(btn => {
+            if (btn) {
+                btn.classList.remove('hidden');
+                btn.className = "bg-slate-100 text-slate-700 text-xs font-bold px-2 py-1 rounded flex items-center gap-1 border border-slate-300";
+                btn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i><span>앱 모드</span>`;
+                btn.onclick = null;
+            }
+        });
         return;
     }
 
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        if (installBtn) installBtn.classList.remove('hidden');
+        if (btnD) btnD.classList.remove('hidden');
+        if (btnM) btnM.classList.remove('hidden');
     });
 
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isMobile && installBtn) {
-        installBtn.classList.remove('hidden');
+    if (isMobile) {
+        if (btnD) btnD.classList.remove('hidden');
+        if (btnM) btnM.classList.remove('hidden');
     }
 }
 
@@ -297,34 +314,37 @@ function closePWAModal() {
     if (modal) modal.classList.add('hidden');
 }
 
-// 🚀 앱 켜질 때 모든 이미지 미리 받아두기 (초기 렉 완벽 해결)
+// 태블릿 메모리 병목을 완벽히 해결하는 순차적(Staggered) 비동기 프리로더
 function preloadAllImages() {
     const imageUrls = [];
-
     Object.values(siteData).forEach(category => {
         if (category.subItems) {
             category.subItems.forEach(sub => {
-                if (sub.images && Array.isArray(sub.images)) {
-                    imageUrls.push(...sub.images);
-                }
+                if (sub.images && Array.isArray(sub.images)) imageUrls.push(...sub.images);
             });
         }
     });
 
-    imageUrls.forEach(url => {
-        const img = new Image();
-        img.src = url;
-    });
+    if (imageUrls.length === 0) return;
+
+    setTimeout(() => {
+        let index = 0;
+        function loadNext() {
+            if (index >= imageUrls.length) return;
+            const img = new Image();
+            img.decoding = 'async';
+            img.src = imageUrls[index];
+            index++;
+            setTimeout(loadNext, 80);
+        }
+        loadNext();
+    }, 400);
 }
 
-// ESC 키 입력 시 확대 모달 닫기
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeZoomModal();
-    }
+    if (e.key === 'Escape') closeZoomModal();
 });
 
-// 초기화 이벤트 연결
 document.addEventListener('DOMContentLoaded', function() {
     initNav();
     initPWA();

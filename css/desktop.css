@@ -1,25 +1,44 @@
+/* STREAMING_CHUNK:Importing fonts and theme variables... */
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-        
-/* 🎨 현장 테마 색상 설정 (여기서 색상을 변경하시면 전체에 적용됩니다) */
+
 :root {
-    --main-color: #0d1b3e;   /* [좌측 배경] 딥네이비 */
-    --accent-color: #4a8b2c; /* [버튼/포인트] 라온 그린 */
+--main-color: #0d1b3e;   /* [주요 배경] 딥네이비 /
+--accent-color: #4a8b2c; / [포인트] 라온 그린 */
 }
 
-* { 
-    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; 
+* {
+font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+-webkit-tap-highlight-color: transparent;
+box-sizing: border-box;
 }
-        
-/* 커스텀 스크롤바 스타일 */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #f1f1f1; }
+
+/* STREAMING_CHUNK:Styling scrollbars and utility classes... /
+/ 커스텀 스크롤바 디자인 */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 .raon-main { background-color: var(--main-color); }
 .raon-accent { background-color: var(--accent-color); }
 .text-raon-accent { color: var(--accent-color); }
 .border-raon-accent { border-color: var(--accent-color); }
 
-/* 가로형 비율 모듈 */
-.aspect-widescreen { aspect-ratio: 16 / 9; }
+/* STREAMING_CHUNK:Configuring touch performance... /
+/ 터치 성능 및 하드웨어 가속 최적화 */
+button, a, div[onclick] {
+touch-action: manipulation !important;
+cursor: pointer !important;
+}
+
+button:active, a:active {
+opacity: 0.8;
+}
+
+aside, main, #contentDisplayArea {
+will-change: transform;
+transform: translateZ(0);
+}
