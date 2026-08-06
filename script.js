@@ -268,3 +268,17 @@ document.addEventListener('DOMContentLoaded', function() {
     initNav();
     initPWA();
 });
+
+// 앱 최상단 툴바 버튼 등에 연결할 수 있는 강제 업데이트 함수
+function forceAppUpdate() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for (let registration of registrations) {
+                registration.unregister(); // 기존 서비스워커 해제
+            }
+            window.location.reload(true); // 강제 새로고침
+        });
+    } else {
+        window.location.reload(true);
+    }
+}
