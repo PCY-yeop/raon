@@ -63,6 +63,19 @@ let currentMain = Object.keys(siteData)[0] || 'summary';
 let currentSubIndex = 0;
 let currentImageIndex = 0;
 
+// 현재 표시 중인 이미지 URL 반환
+function getActiveImageUrl() {
+    const currentCategory = siteData[currentMain];
+    if (!currentCategory || !currentCategory.subItems || currentCategory.subItems.length === 0) return null;
+    const currentSub = currentCategory.subItems[currentSubIndex] || currentCategory.subItems[0];
+    const imageList = currentSub.images && currentSub.images.length > 0 ? currentSub.images : null;
+    
+    if (imageList) {
+        return imageList[currentImageIndex] || imageList[0];
+    }
+    return `https://placehold.co/1920x1080/0d1b3e/ffffff?text=${encodeURIComponent(currentSub.name)}+JPG+이미지`;
+}
+
 // 메인 콘텐츠 이미지 렌더링 (메모리 누수 방지 및 하드웨어 가속 최적화)
 function renderContent() {
     const display = document.getElementById('contentDisplayArea');
@@ -109,7 +122,7 @@ function renderContent() {
         `;
     }
 
-    // GPU 하드웨어 가속 최적화 적용
+    // GPU 하드웨어 가속 최적화 적용 (이미지 클릭 확대 및 이미지 위 안내 오버레이 제거됨)
     display.innerHTML = `
         <div class="relative w-full h-full flex items-center justify-center overflow-hidden rounded-2xl bg-slate-900 shadow-xl border border-slate-300 transform-gpu">
             <img src="${currentImgSrc}" 
@@ -210,6 +223,26 @@ function renderSecondaryNav() {
     renderContent();
 }
 
+// 🔍 이미지 확대 모달 열기 (서브목차 하단 버튼을 통해서만 호출)
+function openZoomModal() {
+    const modal = document.getElementById('imageZoomModal');
+    const zoomedImg = document.getElementById('zoomedImage');
+    const currentUrl = getActiveImageUrl();
+
+    if (modal && zoomedImg && currentUrl) {
+        zoomedImg.src = currentUrl;
+        modal.classList.remove('hidden');
+    }
+}
+
+// 🔍 이미지 확대 모달 닫기
+function closeZoomModal() {
+    const modal = document.getElementById('imageZoomModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
 function toggleFullScreen() {
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch(err => {
@@ -264,16 +297,10 @@ function closePWAModal() {
     if (modal) modal.classList.add('hidden');
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    initNav();
-    initPWA();
-});
-
 // 🚀 앱 켜질 때 모든 이미지 미리 받아두기 (초기 렉 완벽 해결)
 function preloadAllImages() {
     const imageUrls = [];
 
-    // siteData 내의 모든 이미지 경로 수집
     Object.values(siteData).forEach(category => {
         if (category.subItems) {
             category.subItems.forEach(sub => {
@@ -284,16 +311,22 @@ function preloadAllImages() {
         }
     });
 
-    // 백그라운드에서 미리 다운로드 (캐시에 저장)
     imageUrls.forEach(url => {
         const img = new Image();
         img.src = url;
     });
 }
 
-// 기존 DOMContentLoaded 이벤트 안에 preloadAllImages() 실행 추가
+// ESC 키 입력 시 확대 모달 닫기
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeZoomModal();
+    }
+});
+
+// 초기화 이벤트 연결
 document.addEventListener('DOMContentLoaded', function() {
     initNav();
     initPWA();
-    preloadAllImages(); // 👈 이 줄을 추가해 주세요!
+    preloadAllImages();
 });
