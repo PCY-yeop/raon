@@ -1,44 +1,29 @@
-/* STREAMING_CHUNK:Importing fonts and theme variables... */
+/* STREAMING_CHUNK:Defining CSS custom properties and color variables... */
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 
 :root {
---main-color: #0d1b3e;   /* [주요 배경] 딥네이비 /
---accent-color: #4a8b2c; / [포인트] 라온 그린 */
+--main-color: #0d1b3e;   /* [2차 서브목차 선택] 딥네이비 /
+--accent-color: #1b4d24; / [1차 메인목차 선택] 어두운 포레스트 그린 */
 }
 
 * {
 font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
--webkit-tap-highlight-color: transparent;
-box-sizing: border-box;
+touch-action: manipulation;
 }
 
-/* STREAMING_CHUNK:Styling scrollbars and utility classes... /
-/ 커스텀 스크롤바 디자인 */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+/* STREAMING_CHUNK:Styling custom scrollbars and color overrides... /
+/ 커스텀 스크롤바 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+/* 색상 클래스 우선순위 보장 */
+.raon-main { background-color: var(--main-color) !important; }
+.raon-accent { background-color: var(--accent-color) !important; }
+.text-raon-accent { color: var(--accent-color) !important; }
+.border-raon-accent { border-color: var(--accent-color) !important; }
+
+/* 스크롤바 숨기기 클래스 */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-.raon-main { background-color: var(--main-color); }
-.raon-accent { background-color: var(--accent-color); }
-.text-raon-accent { color: var(--accent-color); }
-.border-raon-accent { border-color: var(--accent-color); }
-
-/* STREAMING_CHUNK:Configuring touch performance... /
-/ 터치 성능 및 하드웨어 가속 최적화 */
-button, a, div[onclick] {
-touch-action: manipulation !important;
-cursor: pointer !important;
-}
-
-button:active, a:active {
-opacity: 0.8;
-}
-
-aside, main, #contentDisplayArea {
-will-change: transform;
-transform: translateZ(0);
-}

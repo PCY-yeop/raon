@@ -53,6 +53,87 @@ let currentMain = Object.keys(siteData)[0] || 'summary';
 let currentSubIndex = 0;
 let currentImageIndex = 0;
 
+let touchState = {
+    scale: 1,
+    startDist: 0,
+    posX: 0,
+    posY: 0,
+    startX: 0,
+    startY: 0,
+    isDragging: false,
+    lastTapTime: 0
+};
+
+function resetImgTransform() {
+    touchState = { scale: 1, startDist: 0, posX: 0, posY: 0, startX: 0, startY: 0, isDragging: false, lastTapTime: 0 };
+    applyImgTransform();
+}
+
+function applyImgTransform() {
+    const imgEl = document.querySelector('#contentDisplayArea img');
+    if (imgEl) {
+        imgEl.style.transform = `translate(${touchState.posX}px, ${touchState.posY}px) scale(${touchState.scale})`;
+        imgEl.style.transition = touchState.isDragging ? 'none' : 'transform 0.15s ease-out';
+    }
+}
+
+function initImageTouchEvents() {
+    const displayArea = document.getElementById('contentDisplayArea');
+    if (!displayArea) return;
+
+    displayArea.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+            touchState.startDist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+        } else if (e.touches.length === 1) {
+            const now = Date.now();
+            if (now - touchState.lastTapTime < 300) {
+                touchState.scale = touchState.scale > 1.2 ? 1 : 2.5;
+                if (touchState.scale === 1) {
+                    touchState.posX = 0;
+                    touchState.posY = 0;
+                }
+                applyImgTransform();
+            }
+            touchState.lastTapTime = now;
+            touchState.startX = e.touches[0].clientX - touchState.posX;
+            touchState.startY = e.touches[0].clientY - touchState.posY;
+            touchState.isDragging = true;
+        }
+    }, { passive: false });
+
+    displayArea.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2 && touchState.startDist > 0) {
+            e.preventDefault();
+            const currentDist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            const factor = currentDist / touchState.startDist;
+            let newScale = touchState.scale * factor;
+            touchState.scale = Math.min(Math.max(newScale, 1), 4);
+            touchState.startDist = currentDist;
+            if (touchState.scale === 1) {
+                touchState.posX = 0;
+                touchState.posY = 0;
+            }
+            applyImgTransform();
+        } else if (e.touches.length === 1 && touchState.scale > 1 && touchState.isDragging) {
+            e.preventDefault();
+            touchState.posX = e.touches[0].clientX - touchState.startX;
+            touchState.posY = e.touches[0].clientY - touchState.startY;
+            applyImgTransform();
+        }
+    }, { passive: false });
+
+    displayArea.addEventListener('touchend', (e) => {
+        touchState.isDragging = false;
+        if (e.touches.length < 2) touchState.startDist = 0;
+    });
+}
+
 function getActiveImageUrl() {
     const currentCategory = siteData[currentMain];
     if (!currentCategory || !currentCategory.subItems || currentCategory.subItems.length === 0) return null;
@@ -65,6 +146,7 @@ function getActiveImageUrl() {
 }
 
 function renderContent() {
+    resetImgTransform();
     const display = document.getElementById('contentDisplayArea');
     if (!display) return;
     
@@ -101,7 +183,7 @@ function renderContent() {
     let paginationHtml = '';
     if (imageList.length > 1) {
         paginationHtml = `
-        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white px-4 py-1.5 rounded-full flex items-center gap-3 text-xs z-10 shadow-lg select-none">
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white px-4 py-1.5 rounded-full flex items-center gap-3 text-xs z-10 shadow-lg select-none pointer-events-auto">
             <button onclick="changeImgPage(-1)" class="hover:text-emerald-400 p-1 ${currentImageIndex === 0 ? 'opacity-30 cursor-not-allowed' : ''}"><i class="fa-solid fa-chevron-left"></i></button>
             <span><strong>${currentImageIndex + 1}</strong> / ${imageList.length}</span>
             <button onclick="changeImgPage(1)" class="hover:text-emerald-400 p-1 ${currentImageIndex === imageList.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}"><i class="fa-solid fa-chevron-right"></i></button>
@@ -109,7 +191,6 @@ function renderContent() {
         `;
     }
 
-    // 비동기 이미지 디코딩 및 GPU 하드웨어 가속
     display.innerHTML = `
         <div class="relative w-full h-full flex items-center justify-center overflow-hidden rounded-xl md:rounded-2xl bg-slate-900 shadow-xl border border-slate-300 transform-gpu">
             <img src="${currentImgSrc}" 
@@ -117,7 +198,7 @@ function renderContent() {
                  onerror="this.onerror=null; this.src='${fallbackSrc}';"
                  decoding="async"
                  fetchpriority="high"
-                 class="max-w-full max-h-full object-contain mx-auto shadow-md transition-opacity duration-150 opacity-100"
+                 class="max-w-full max-h-full object-contain mx-auto shadow-md transition-transform duration-150 transform-gpu origin-center"
                  loading="eager">
             ${paginationHtml}
         </div>
@@ -165,7 +246,7 @@ function initNav() {
         const item = siteData[key];
         const isActive = key === currentMain;
         
-        // 데스크톱 1차 메인목차 버튼 (활성화 시 어두운 초록색 #1b4d24 적용)
+        // 1차 메인목차 (클릭 시 어두운 초록색 #1b4d24)
         if (primaryNavDesktop) {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -177,7 +258,6 @@ function initNav() {
             primaryNavDesktop.appendChild(btn);
         }
 
-        // 모바일 가로 탭 버튼 (활성화 시 어두운 초록색 #1b4d24 적용)
         if (primaryNavMobile) {
             const btnM = document.createElement('button');
             btnM.type = 'button';
@@ -210,7 +290,6 @@ function renderSecondaryNav() {
         currentObj.subItems.forEach((sub, index) => {
             const isActive = index === currentSubIndex;
 
-            // 데스크톱 서브 버튼
             if (secondaryNavDesktop) {
                 const btn = document.createElement('button');
                 btn.type = 'button';
@@ -222,7 +301,6 @@ function renderSecondaryNav() {
                 secondaryNavDesktop.appendChild(btn);
             }
 
-            // 모바일 서브 버튼
             if (secondaryNavMobile) {
                 const btnM = document.createElement('button');
                 btnM.type = 'button';
@@ -314,7 +392,6 @@ function closePWAModal() {
     if (modal) modal.classList.add('hidden');
 }
 
-// 태블릿 메모리 병목을 완벽히 해결하는 순차적(Staggered) 비동기 프리로더
 function preloadAllImages() {
     const imageUrls = [];
     Object.values(siteData).forEach(category => {
@@ -348,5 +425,6 @@ document.addEventListener('keydown', function(e) {
 document.addEventListener('DOMContentLoaded', function() {
     initNav();
     initPWA();
+    initImageTouchEvents();
     preloadAllImages();
 });
