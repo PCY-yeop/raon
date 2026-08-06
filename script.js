@@ -269,16 +269,31 @@ document.addEventListener('DOMContentLoaded', function() {
     initPWA();
 });
 
-// 앱 최상단 툴바 버튼 등에 연결할 수 있는 강제 업데이트 함수
-function forceAppUpdate() {
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for (let registration of registrations) {
-                registration.unregister(); // 기존 서비스워커 해제
-            }
-            window.location.reload(true); // 강제 새로고침
-        });
-    } else {
-        window.location.reload(true);
-    }
+// 🚀 앱 켜질 때 모든 이미지 미리 받아두기 (초기 렉 완벽 해결)
+function preloadAllImages() {
+    const imageUrls = [];
+
+    // siteData 내의 모든 이미지 경로 수집
+    Object.values(siteData).forEach(category => {
+        if (category.subItems) {
+            category.subItems.forEach(sub => {
+                if (sub.images && Array.isArray(sub.images)) {
+                    imageUrls.push(...sub.images);
+                }
+            });
+        }
+    });
+
+    // 백그라운드에서 미리 다운로드 (캐시에 저장)
+    imageUrls.forEach(url => {
+        const img = new Image();
+        img.src = url;
+    });
 }
+
+// 기존 DOMContentLoaded 이벤트 안에 preloadAllImages() 실행 추가
+document.addEventListener('DOMContentLoaded', function() {
+    initNav();
+    initPWA();
+    preloadAllImages(); // 👈 이 줄을 추가해 주세요!
+});

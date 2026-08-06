@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -9,9 +8,6 @@
     <link rel="manifest" href="manifest.json">
 
     <!-- PWA 모바일 앱 설정 메타 태그 -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="라온스카이브">
     <meta name="theme-color" content="#0d1b3e">
     
@@ -19,14 +15,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- 대표 이미지 리로드 -->
+    <!-- 경로 통일 (상대 경로로 수정) -->
     <link rel="preload" as="image" href="images/sam.jpg">
     
-    <!-- 📂 외부 CSS 및 JS 연결 영역 (버전 번호를 변경하여 배포하면 태블릿 캐시가 즉시 업데이트됩니다) -->
-    <link rel="stylesheet" href="css/desktop.css?v=1.1">
-    <script src="script.js?v=1.1" defer></script>
+    <!-- 📂 외부 CSS 및 JS 연결 영역 -->
+    <link rel="stylesheet" href="css/desktop.css">
+    <link rel="manifest" href="manifest.json">
+    <script src="script.js" defer></script>
 </head>
 
+<!-- select-none 제거 완료 -->
 <body class="bg-gray-100 text-gray-800 h-screen w-screen overflow-hidden flex">
 
     <!-- 1차 메인 사이드바 (좌측 최외곽 / 네이비 배경) -->
@@ -47,7 +45,7 @@
             </nav>
         </div>
 
-        <!-- 하단 고정 브랜드 라벨 -->
+        <!-- 하단 고정 버튼 및 브랜드 라벨 -->
         <div class="w-full flex-shrink-0 pt-2 mt-2 flex flex-col gap-2.5 items-center">
             <div class="text-[10px] text-gray-400 text-center tracking-tighter border-t border-white/10 pt-2.5 w-full">
                 VIP BRIEFING BOOK
@@ -77,26 +75,18 @@
                 <h2 class="text-lg font-bold text-gray-900" id="currentContentTitle">건축개요 및 사업안내</h2>
             </div>
 
-            <!-- 우측 편의 툴바 (업데이트 & 앱 다운로드 & 전체화면) -->
-            <div class="flex items-center gap-3">
-                
-                <!-- 💡 [추가] 강제 새로고침/업데이트 버튼 -->
-                <button onclick="forceAppUpdate()" class="text-gray-600 hover:text-slate-900 text-xs p-1.5 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-1 border border-gray-200" title="최신버전 업데이트">
-                    <i class="fa-solid fa-rotate-right"></i>
-                    <span class="font-medium hidden sm:inline">업데이트</span>
-                </button>
-
-                <button id="pwaInstallBtn" onclick="installPWAApp()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow transition-all">
+            <!-- 우측 편의 툴바 (앱 다운로드 & 전체화면) -->
+            <div class="flex items-center gap-4">
+                <button id="pwaInstallBtn" onclick="installPWAApp()" class="hidden bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow transition-all animate-bounce">
                     <i class="fa-solid fa-download"></i>
                     <span>앱 다운로드</span>
                 </button>
 
                 <div class="text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span>상담 전용 브리핑 모드</span>
                 </div>
-
-                <button onclick="toggleFullScreen()" class="text-gray-600 hover:text-slate-900 text-sm p-1.5 rounded-lg hover:bg-gray-100 transition-colors" title="전체화면">
+                <button onclick="toggleFullScreen()" class="text-gray-600 hover:text-slate-900 text-sm p-2 rounded-lg hover:bg-gray-100 transition-colors" title="전체화면">
                     <i class="fa-solid fa-expand"></i>
                 </button>
             </div>
@@ -113,8 +103,8 @@
         </footer>
     </main>
 
-    <!-- 모바일 앱 설치 안내 모달 (태블릿 GPU 부하 방지를 위해 backdrop-blur 제거) -->
-    <div id="pwaInstallModal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+    <!-- 모바일 앱 설치 안내 모달 -->
+    <div id="pwaInstallModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl border border-slate-200">
             <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">
                 <i class="fa-solid fa-mobile-screen-button"></i>
