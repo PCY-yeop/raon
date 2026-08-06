@@ -38,7 +38,7 @@ const siteData = {
             { name: "59A 타입", images: ["images/59a.jpg"] },
             { name: "59B 타입", images: ["images/59b.jpg"] },
             { name: "84 타입", images: ["images/84.jpg"] },
-            {  name: "44 오피스텔", images: ["images/44.jpg"] }
+            { name: "44 오피스텔", images: ["images/44.jpg"] }
         ]
     },
     /* > 5. 분양안내 */
@@ -54,7 +54,7 @@ const siteData = {
     officetel: {
         title: "계약안내",
         subItems: [
-            { name: "납부계좌", images: ["images/g1.jpg"] },
+            { name: "납부계좌", images: ["images/g1.jpg"] }
         ]
     }
 };
@@ -63,9 +63,10 @@ let currentMain = Object.keys(siteData)[0] || 'summary';
 let currentSubIndex = 0;
 let currentImageIndex = 0;
 
-// 메인 콘텐츠 이미지 렌더링
+// 메인 콘텐츠 이미지 렌더링 (메모리 누수 방지 및 하드웨어 가속 최적화)
 function renderContent() {
     const display = document.getElementById('contentDisplayArea');
+    if (!display) return;
     
     if (!siteData[currentMain]) {
         currentMain = Object.keys(siteData)[0];
@@ -83,8 +84,10 @@ function renderContent() {
 
     const currentSub = currentCategory.subItems[currentSubIndex];
     
-    document.getElementById('currentCategoryBadge').innerText = currentCategory.title;
-    document.getElementById('currentContentTitle').innerText = currentSub.name;
+    const badgeEl = document.getElementById('currentCategoryBadge');
+    const titleEl = document.getElementById('currentContentTitle');
+    if (badgeEl) badgeEl.innerText = currentCategory.title;
+    if (titleEl) titleEl.innerText = currentSub.name;
 
     const imageList = currentSub.images && currentSub.images.length > 0 
         ? currentSub.images 
@@ -98,20 +101,22 @@ function renderContent() {
     let paginationHtml = '';
     if (imageList.length > 1) {
         paginationHtml = `
-        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-md text-white px-4 py-1.5 rounded-full flex items-center gap-3 text-xs z-10 shadow-lg">
-            <button onclick="changeImgPage(-1)" class="hover:text-emerald-400 transition-colors ${currentImageIndex === 0 ? 'opacity-30 cursor-not-allowed' : ''}"><i class="fa-solid fa-chevron-left"></i></button>
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white px-4 py-1.5 rounded-full flex items-center gap-3 text-xs z-10 shadow-lg">
+            <button onclick="changeImgPage(-1)" class="hover:text-emerald-400 p-1 ${currentImageIndex === 0 ? 'opacity-30 cursor-not-allowed' : ''}"><i class="fa-solid fa-chevron-left"></i></button>
             <span><strong>${currentImageIndex + 1}</strong> / ${imageList.length}</span>
-            <button onclick="changeImgPage(1)" class="hover:text-emerald-400 transition-colors ${currentImageIndex === imageList.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}"><i class="fa-solid fa-chevron-right"></i></button>
+            <button onclick="changeImgPage(1)" class="hover:text-emerald-400 p-1 ${currentImageIndex === imageList.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
         `;
     }
 
+    // GPU 하드웨어 가속 최적화 적용
     display.innerHTML = `
-        <div class="relative w-full h-full flex items-center justify-center overflow-hidden rounded-2xl bg-slate-900 shadow-2xl border border-slate-300 group">
+        <div class="relative w-full h-full flex items-center justify-center overflow-hidden rounded-2xl bg-slate-900 shadow-xl border border-slate-300 transform-gpu">
             <img src="${currentImgSrc}" 
                  alt="${currentSub.name}" 
                  onerror="this.onerror=null; this.src='${fallbackSrc}';"
-                 class="max-w-full max-h-full object-contain mx-auto shadow-md transition-all duration-300">
+                 class="max-w-full max-h-full object-contain mx-auto shadow-md transition-opacity duration-200 opacity-100"
+                 loading="eager">
             ${paginationHtml}
         </div>
     `;
@@ -142,16 +147,10 @@ function switchSubTab(index) {
     renderSecondaryNav();
 }
 
-function goToFirstPage() {
-    const keys = Object.keys(siteData);
-    if (keys.length > 0) {
-        switchMainTab(keys[0], 0);
-    }
-}
-
 // 1차 목차 자동 나열
 function initNav() {
     const primaryNav = document.getElementById('primaryNav');
+    if (!primaryNav) return;
     primaryNav.innerHTML = '';
 
     const keys = Object.keys(siteData);
@@ -166,9 +165,10 @@ function initNav() {
         const isActive = key === currentMain;
         
         const btn = document.createElement('button');
-        btn.className = `w-full py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-sm text-center flex-shrink-0 ${
+        btn.type = 'button';
+        btn.className = `w-full py-3 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-sm text-center flex-shrink-0 touch-manipulation ${
             isActive 
-            ? 'raon-accent text-white shadow-md scale-102' 
+            ? 'raon-accent text-white shadow-md' 
             : 'bg-white text-slate-800 hover:bg-slate-100 hover:text-slate-900'
         }`;
         btn.onclick = () => switchMainTab(key, 0);
@@ -183,18 +183,20 @@ function initNav() {
 function renderSecondaryNav() {
     const secondaryNav = document.getElementById('secondaryNav');
     const subTitle = document.getElementById('subCategoryTitle');
+    if (!secondaryNav) return;
     secondaryNav.innerHTML = '';
 
     const currentObj = siteData[currentMain];
     if (!currentObj) return;
 
-    subTitle.innerText = currentObj.title;
+    if (subTitle) subTitle.innerText = currentObj.title;
 
     if (currentObj.subItems && currentObj.subItems.length > 0) {
         currentObj.subItems.forEach((sub, index) => {
             const isActive = index === currentSubIndex;
             const btn = document.createElement('button');
-            btn.className = `w-full py-2.5 px-3 rounded-lg text-xs font-semibold text-left transition-all cursor-pointer flex items-center justify-between flex-shrink-0 ${
+            btn.type = 'button';
+            btn.className = `w-full py-2.5 px-3 rounded-lg text-xs font-semibold text-left transition-all cursor-pointer flex items-center justify-between flex-shrink-0 touch-manipulation ${
                 isActive 
                 ? 'raon-main text-white shadow-md font-bold' 
                 : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 border border-slate-200'
@@ -220,64 +222,30 @@ function toggleFullScreen() {
     }
 }
 
-// PWA 자동 제어 로직
+// PWA 핸들러
 let deferredPrompt = null;
 
 function initPWA() {
-    const manifestData = {
-        name: "숭의역 라온프라이빗 스카이브 브리핑북",
-        short_name: "라온스카이브",
-        start_url: "./",
-        display: "standalone",
-        orientation: "landscape",
-        background_color: "#0d1b3e",
-        theme_color: "#0d1b3e",
-        icons: [
-            { src: "https://placehold.co/192x192/0d1b3e/ffffff?text=RAON+APP", sizes: "192x192", type: "image/png" },
-            { src: "https://placehold.co/512x512/0d1b3e/ffffff?text=RAON+APP", sizes: "512x512", type: "image/png" }
-        ]
-    };
-    const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/json' });
-    const manifestLink = document.createElement('link');
-    manifestLink.rel = 'manifest';
-    manifestLink.href = URL.createObjectURL(manifestBlob);
-    document.head.appendChild(manifestLink);
-
-    if ('serviceWorker' in navigator) {
-        const swCode = `
-            self.addEventListener('install', (e) => self.skipWaiting());
-            self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
-            self.addEventListener('fetch', (e) => {});
-        `;
-        const swBlob = new Blob([swCode], { type: 'application/javascript' });
-        navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-            .catch(err => console.log('SW error:', err));
-    }
-
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (isStandalone) {
-        const installBtn = document.getElementById('pwaInstallBtn');
-        if (installBtn) {
-            installBtn.classList.remove('hidden');
-            installBtn.classList.remove('animate-bounce');
-            installBtn.className = "bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-slate-300";
-            installBtn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i><span>전용 앱 모드</span>`;
-            installBtn.onclick = null;
-        }
+    const installBtn = document.getElementById('pwaInstallBtn');
+
+    if (isStandalone && installBtn) {
+        installBtn.classList.remove('hidden');
+        installBtn.className = "bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 border border-slate-300";
+        installBtn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i><span>전용 앱 모드</span>`;
+        installBtn.onclick = null;
         return;
     }
 
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        const installBtn = document.getElementById('pwaInstallBtn');
         if (installBtn) installBtn.classList.remove('hidden');
     });
 
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isMobile) {
-        const installBtn = document.getElementById('pwaInstallBtn');
-        if (installBtn) installBtn.classList.remove('hidden');
+    if (isMobile && installBtn) {
+        installBtn.classList.remove('hidden');
     }
 }
 
@@ -296,7 +264,7 @@ function closePWAModal() {
     if (modal) modal.classList.add('hidden');
 }
 
-window.onload = function() {
+document.addEventListener('DOMContentLoaded', function() {
     initNav();
     initPWA();
-};
+});
