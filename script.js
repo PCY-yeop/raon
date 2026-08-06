@@ -246,7 +246,7 @@ function initNav() {
         const item = siteData[key];
         const isActive = key === currentMain;
         
-        // 1차 메인목차 (클릭 시 어두운 초록색 #1b4d24)
+        // 1차 메인목차 (클릭 시 어두운 포레스트 그린 #1b4d24)
         if (primaryNavDesktop) {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -392,7 +392,8 @@ function closePWAModal() {
     if (modal) modal.classList.add('hidden');
 }
 
-function preloadAllImages() {
+// 퍼센트(%) 로딩 진행률 표시 기능을 포함한 이미지 프리로더
+function preloadAllImagesWithProgress() {
     const imageUrls = [];
     Object.values(siteData).forEach(category => {
         if (category.subItems) {
@@ -402,20 +403,61 @@ function preloadAllImages() {
         }
     });
 
-    if (imageUrls.length === 0) return;
+    const percentEl = document.getElementById('loadingPercent');
+    const progressBar = document.getElementById('loadingProgressBar');
+    const statusText = document.getElementById('loadingStatusText');
+    const loadingScreen = document.getElementById('loadingScreen');
 
-    setTimeout(() => {
-        let index = 0;
-        function loadNext() {
-            if (index >= imageUrls.length) return;
-            const img = new Image();
-            img.decoding = 'async';
-            img.src = imageUrls[index];
-            index++;
-            setTimeout(loadNext, 80);
+    if (imageUrls.length === 0) {
+        hideLoadingScreen();
+        return;
+    }
+
+    let loadedCount = 0;
+    const totalCount = imageUrls.length;
+
+    function updateProgress() {
+        loadedCount++;
+        const percent = Math.min(Math.round((loadedCount / totalCount) * 100), 100);
+        
+        if (percentEl) percentEl.innerText = `${percent}%`;
+        if (progressBar) progressBar.style.width = `${percent}%`;
+
+        if (loadedCount >= totalCount) {
+            if (statusText) statusText.innerHTML = `<i class="fa-solid fa-circle-check"></i> 로딩 완료!`;
+            setTimeout(hideLoadingScreen, 400);
         }
-        loadNext();
-    }, 400);
+    }
+
+    function hideLoadingScreen() {
+        if (loadingScreen) {
+            loadingScreen.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, 500);
+        }
+    }
+
+    // 최대 3.5초 안전 타임아웃 보장
+    const timeoutTimer = setTimeout(() => {
+        if (percentEl) percentEl.innerText = `100%`;
+        if (progressBar) progressBar.style.width = `100%`;
+        hideLoadingScreen();
+    }, 3500);
+
+    let index = 0;
+    function loadNext() {
+        if (index >= totalCount) return;
+        const img = new Image();
+        img.decoding = 'async';
+        img.onload = () => { updateProgress(); };
+        img.onerror = () => { updateProgress(); };
+        img.src = imageUrls[index];
+        index++;
+        setTimeout(loadNext, 60);
+    }
+
+    loadNext();
 }
 
 document.addEventListener('keydown', function(e) {
@@ -426,5 +468,5 @@ document.addEventListener('DOMContentLoaded', function() {
     initNav();
     initPWA();
     initImageTouchEvents();
-    preloadAllImages();
+    preloadAllImagesWithProgress();
 });
