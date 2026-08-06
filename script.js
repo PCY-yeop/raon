@@ -261,7 +261,7 @@ function initNav() {
         if (primaryNavMobile) {
             const btnM = document.createElement('button');
             btnM.type = 'button';
-            btnM.className = `py-1.5 px-3 rounded-lg text-[11px] font-bold whitespace-nowrap flex-shrink-0 touch-manipulation ${
+            btnM.className = `py-1.5 px-3 rounded-lg text-[14px] font-bold whitespace-nowrap flex-shrink-0 touch-manipulation ${
                 isActive ? 'bg-[#1b4d24] raon-accent text-white shadow' : 'bg-white/10 text-slate-200'
             }`;
             btnM.onclick = () => switchMainTab(key, 0);
@@ -304,7 +304,7 @@ function renderSecondaryNav() {
             if (secondaryNavMobile) {
                 const btnM = document.createElement('button');
                 btnM.type = 'button';
-                btnM.className = `py-1 px-2.5 rounded-md text-[10px] font-semibold whitespace-nowrap flex-shrink-0 touch-manipulation ${
+                btnM.className = `py-1 px-2.5 rounded-md text-[12px] font-semibold whitespace-nowrap flex-shrink-0 touch-manipulation ${
                     isActive ? 'bg-slate-900 text-white font-bold' : 'bg-slate-100 text-slate-700 border border-slate-300'
                 }`;
                 btnM.onclick = () => switchSubTab(index);
